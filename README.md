@@ -1,5 +1,7 @@
 # ToolNest — free, privacy-first online tools
 
+**Live:** https://toolnest.toolnest-app.workers.dev (Cloudflare Workers Free)
+
 60 genuinely functional tools (images, PDF, text, developer, converters, calculators, productivity, security) that run **in the visitor's browser**, plus a private admin dashboard backed by Supabase.
 
 - **Stack:** Astro 7 (SSR) · React 19 islands · TypeScript strict · Tailwind CSS 4 · Cloudflare Workers (official adapter) · Supabase (PostgreSQL, Auth, RLS)
