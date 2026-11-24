@@ -1,0 +1,213 @@
+---
+import MainLayout from './MainLayout.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import AdSlot from '../components/layout/AdSlot.astro';
+import ToolRunner from '../components/tools/ToolRunner';
+import { Icon } from '../components/common/Icon';
+import { localePath, t as tr } from '../i18n';
+import { absoluteUrl, breadcrumbLd, faqLd } from '../lib/seo/meta';
+import { listedTools } from '../lib/site/merge';
+import type { PageContext } from '../lib/page';
+import type { Locale, PublicTool } from '../types/tool';
+import { UI_KEYS_FOR_TOOLS, type ToolUi } from '../components/tools/ui-keys';
+
+interface Props {
+  ctx: PageContext;
+  tool: PublicTool;
+}
+const { ctx, tool } = Astro.props;
+const { data, locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const cat = data.categories.find((c) => c.id === tool.category);
+const listed = listedTools(data);
+const related = tool.related
+  .map((id) => listed.find((x) => x.implementation === id || x.id === id))
+  .filter((x): x is PublicTool => !!x && x.id !== tool.id)
+  .slice(0, 3);
+if (related.length < 3) {
+  for (const x of listed) {
+    if (related.length >= 3) break;
+    if (x.category === tool.category && x.id !== tool.id && !related.includes(x)) related.push(x);
+  }
+}
+const faqs = data.toolFaqs[tool.id]?.length ? data.toolFaqs[tool.id] : tool.content.faq;
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  ...(cat ? [{ name: cat.title, href: lp(`/categories/${cat.slug}/`) }] : []),
+  { name: tool.title, href: lp(`/tools/${tool.slug}/`) },
+];
+const unavailable = !tool.enabled;
+const maintenance = tool.enabled && tool.maintenance;
+const contentLang: Locale = tool.localized ? locale : 'en';
+const ui = Object.fromEntries(UI_KEYS_FOR_TOOLS.map((k) => [k, tr(locale, k)])) as ToolUi;
+
+const appLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.title,
+  description: tool.short,
+  url: absoluteUrl(lp(`/tools/${tool.slug}/`)),
+  applicationCategory: tool.category === 'developer-tools' ? 'DeveloperApplication' : 'UtilitiesApplication',
+  operatingSystem: 'Any (web browser)',
+  browserRequirements: 'Requires JavaScript and a modern web browser',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+};
+const ld = [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href }))), appLd, faqLd(faqs)].filter(Boolean) as Record<string, unknown>[];
+// Localized tool pages are only indexable when a genuine translation of the guide exists.
+const noindex = unavailable || (locale !== 'en' && !tool.localized);
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{
+    title: tool.seoTitle || `${tool.title} — ${locale === 'fr' ? 'gratuit en ligne' : locale === 'ar' ? 'مجانًا على الإنترنت' : 'Free Online'}`,
+    description: tool.metaDescription || tool.short,
+    path: `/tools/${tool.slug}/`,
+    locale,
+    alternates: tool.localized && locale !== 'en' ? ['en', locale] : locale === 'en' ? ['en'] : [],
+    noindex,
+    canonicalPath: locale !== 'en' && !tool.localized ? localePath('en', `/tools/${tool.slug}/`) : undefined,
+    jsonLd: ld,
+  }}
+>
+  <div class="container-page py-8">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+
+    <header class="mt-5 flex flex-wrap items-start justify-between gap-4">
+      <div class="flex items-start gap-4">
+        <span class="hidden rounded-2xl bg-brand-50 p-3 text-brand-600 sm:block dark:bg-brand-700/20 dark:text-brand-200">
+          <Icon name={tool.icon} size={28} />
+        </span>
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{tool.title}</h1>
+          <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-400">{tool.short}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="btn-secondary btn-sm"
+        data-fav-button
+        data-tool-id={tool.id}
+        data-label-add={t('common.addFavorite')}
+        data-label-remove={t('common.removeFavorite')}
+        aria-pressed="false"
+      >
+        <Icon name="Star" size={16} />
+        <span data-fav-label>{t('common.addFavorite')}</span>
+      </button>
+    </header>
+
+    <section class="card mt-6 p-4 sm:p-6" aria-label={tool.title}>
+      {
+        unavailable ? (
+          <div class="flex items-start gap-3 rounded-lg bg-slate-100 p-4 dark:bg-slate-800" role="status">
+            <Icon name="Lock" size={20} />
+            <p class="font-medium">{t('tool.disabledTitle')}</p>
+          </div>
+        ) : maintenance ? (
+          <div class="flex items-start gap-3 rounded-lg bg-amber-50 p-4 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100" role="status">
+            <Icon name="Wrench" size={20} />
+            <div>
+              <p class="font-semibold">{t('tool.maintenanceTitle')}</p>
+              <p class="mt-1 text-sm">{t('tool.maintenanceText')}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <ToolRunner client:load implementation={tool.implementation} locale={locale} maxUploadMb={data.general.maxUploadMb} ui={ui} />
+            <noscript>
+              <p class="rounded-lg bg-amber-50 p-4 text-amber-900">{t('tool.noscript')}</p>
+            </noscript>
+          </>
+        )
+      }
+    </section>
+
+    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+      <Icon name="ShieldCheck" size={20} className="mt-0.5 shrink-0" />
+      <p>
+        <strong class="font-semibold">{t('tool.privacyTitle')}.</strong>
+        {' '}{tool.fileTool ? t('tool.privacyText') : t('tool.privacyTextNoFiles')}
+      </p>
+    </div>
+
+    <AdSlot ctx={ctx} placement="tool" />
+
+    <div class="mt-12 grid gap-10 lg:grid-cols-3">
+      <article class="lg:col-span-2" lang={contentLang} dir={contentLang === 'en' && locale === 'ar' ? 'ltr' : undefined}>
+        {!tool.localized && locale !== 'en' && <p class="mb-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100" lang={locale} dir="auto">{t('tool.translationFallback')}</p>}
+        <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300">{tool.content.description}</p>
+
+        <h2 class="mt-10 text-xl font-semibold">{tr(contentLang, 'tool.howTo', { title: tool.title })}</h2>
+        <ol class="mt-4 space-y-3">
+          {tool.content.steps.map((s, i) => (
+            <li class="flex gap-3">
+              <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">{i + 1}</span>
+              <span class="pt-0.5">{s}</span>
+            </li>
+          ))}
+        </ol>
+
+        {tool.content.formats && tool.content.formats.length > 0 && (
+          <>
+            <h2 class="mt-10 text-xl font-semibold">{tr(contentLang, 'tool.formats')}</h2>
+            <ul class="mt-3 list-disc space-y-1 ps-6">{tool.content.formats.map((f) => <li>{f}</li>)}</ul>
+          </>
+        )}
+
+        <h2 class="mt-10 text-xl font-semibold">{tr(contentLang, 'tool.limitations')}</h2>
+        <ul class="mt-3 list-disc space-y-1.5 ps-6 text-slate-700 dark:text-slate-300">{tool.content.limitations.map((l) => <li>{l}</li>)}</ul>
+
+        {tool.content.examples && tool.content.examples.length > 0 && (
+          <>
+            <h2 class="mt-10 text-xl font-semibold">{tr(contentLang, 'tool.examples')}</h2>
+            <ul class="mt-3 list-disc space-y-1 ps-6">{tool.content.examples.map((e) => <li>{e}</li>)}</ul>
+          </>
+        )}
+
+        {faqs.length > 0 && (
+          <>
+            <h2 class="mt-10 text-xl font-semibold">{tr(contentLang, 'tool.faq')}</h2>
+            <div class="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+              {faqs.map((f) => (
+                <details class="group p-4">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-medium [&::-webkit-details-marker]:hidden">
+                    <h3 class="text-base">{f.q}</h3>
+                    <Icon name="ChevronDown" size={18} className="shrink-0 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </>
+        )}
+      </article>
+
+      <aside aria-labelledby="related-h">
+        <h2 id="related-h" class="text-xl font-semibold">{t('tool.related')}</h2>
+        <ul class="mt-4 grid gap-4" role="list">
+          {related.map((r) => <li><ToolCard ctx={ctx} tool={r} /></li>)}
+        </ul>
+      </aside>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  import { addRecentTool, isFavorite, toggleFavorite } from '../lib/storage/local';
+  const btn = document.querySelector<HTMLButtonElement>('[data-fav-button]');
+  if (btn) {
+    const id = btn.dataset.toolId || '';
+    const label = btn.querySelector('[data-fav-label]');
+    const render = (on: boolean) => {
+      btn.setAttribute('aria-pressed', String(on));
+      btn.classList.toggle('text-amber-600', on);
+      if (label) label.textContent = (on ? btn.dataset.labelRemove : btn.dataset.labelAdd) || '';
+    };
+    render(isFavorite(id));
+    btn.addEventListener('click', () => render(toggleFavorite(id)));
+    addRecentTool(id);
+  }
+</script>

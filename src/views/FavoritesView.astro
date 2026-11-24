@@ -1,0 +1,40 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import { LOCALES } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import type { PageContext } from '../lib/page';
+
+interface Props {
+  ctx: PageContext;
+}
+const { ctx } = Astro.props;
+const { data, locale, t } = ctx;
+const tools = listedTools(data);
+---
+
+<MainLayout ctx={ctx} meta={{ title: t('pages.favoritesTitle'), description: t('pages.favoritesEmpty'), path: '/favorites/', locale, alternates: [...LOCALES], noindex: true }}>
+  <div class="container-page py-10">
+    <h1 class="text-3xl font-bold tracking-tight">{t('pages.favoritesTitle')}</h1>
+    <p id="fav-empty" class="mt-4 text-slate-600 dark:text-slate-400">{t('pages.favoritesEmpty')}</p>
+    <ul id="fav-list" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {tools.map((tool) => <li hidden data-fav-id={tool.id}><ToolCard ctx={ctx} tool={tool} headingLevel="h2" /></li>)}
+    </ul>
+    <h2 id="recent-h" class="mt-12 text-xl font-semibold" hidden>{t('pages.recentlyUsed')}</h2>
+    <ul id="recent-list" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {tools.map((tool) => <li hidden data-recent-id={tool.id}><ToolCard ctx={ctx} tool={tool} headingLevel="h3" /></li>)}
+    </ul>
+  </div>
+</MainLayout>
+
+<script>
+  import { getFavorites, getRecentTools } from '../lib/storage/local';
+  const favs = getFavorites();
+  const recent = getRecentTools();
+  document.querySelectorAll<HTMLElement>('[data-fav-id]').forEach((el) => (el.hidden = !favs.includes(el.dataset.favId || '')));
+  document.querySelectorAll<HTMLElement>('[data-recent-id]').forEach((el) => (el.hidden = !recent.includes(el.dataset.recentId || '')));
+  const empty = document.getElementById('fav-empty');
+  if (empty) empty.hidden = favs.length > 0;
+  const rh = document.getElementById('recent-h');
+  if (rh) rh.hidden = recent.length === 0;
+</script>

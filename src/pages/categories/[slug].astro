@@ -1,0 +1,10 @@
+---
+import CategoryView from '../../views/CategoryView.astro';
+import { getPageContext } from '../../lib/page';
+
+const ctx = await getPageContext(Astro);
+const category = ctx?.data.categories.find((c) => c.slug === Astro.params.slug && c.visible);
+if (!ctx || !category) return Astro.rewrite('/404');
+---
+
+<CategoryView ctx={ctx} category={category} />

@@ -1,0 +1,11 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { applyPageCsp } from '../../lib/page';
+import LoginForm from '../../components/admin/LoginForm';
+
+await applyPageCsp(Astro, false);
+---
+
+<AdminLayout title="Sign in">
+  <LoginForm client:only="react" />
+</AdminLayout>

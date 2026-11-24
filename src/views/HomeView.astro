@@ -1,0 +1,216 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import CategoryCard from '../components/common/CategoryCard.astro';
+import SectionHeading from '../components/common/SectionHeading.astro';
+import AdSlot from '../components/layout/AdSlot.astro';
+import SearchBox from '../components/navigation/SearchBox';
+import { Icon } from '../components/common/Icon';
+import { LOCALES, localePath } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import { absoluteUrl, faqLd } from '../lib/seo/meta';
+import { renderSafeMarkdown } from '../lib/security/markdown';
+import type { PageContext } from '../lib/page';
+import type { HomepageSectionId } from '../lib/site/types';
+
+interface Props {
+  ctx: PageContext;
+}
+const { ctx } = Astro.props;
+const { data, locale, t } = ctx;
+const brand = data.branding.siteName;
+const lp = (p: string) => localePath(locale, p);
+const tools = listedTools(data);
+const popular = (tools.filter((x) => x.featured || x.popular).length ? tools.filter((x) => x.featured || x.popular) : tools).slice(0, 8);
+const shortcuts = tools.filter((x) => x.popular).slice(0, 6);
+const recent = [...tools].sort((a, b) => b.addedAt.localeCompare(a.addedAt)).slice(0, 6);
+const cats = data.categories.filter((c) => c.visible);
+const countFor = (id: string) => tools.filter((x) => x.category === id).length;
+const hp = data.homepage;
+const sections = (Object.values(hp) as { id: HomepageSectionId; enabled: boolean; order: number }[])
+  .filter((s) => s.enabled)
+  .sort((a, b) => a.order - b.order)
+  .map((s) => s.id);
+
+const seoDefault: Record<string, string> = {
+  en: `${brand} brings together ${tools.length} free online tools for the tasks that come up every day: shrinking a photo before emailing it, merging scanned PDFs, checking the length of a meta description, formatting a JSON response or generating a strong password.
+
+Unlike many online converters, ${brand} processes your files **inside your browser**. Images are decoded with the Canvas API, PDFs are rebuilt with the open-source pdf-lib and PDF.js libraries, and heavy operations run in Web Workers so the page stays responsive. Because nothing is uploaded, results are fast and your documents stay private.
+
+Every tool page explains what the tool does, how to use it, which formats are supported and — just as important — its limitations, so you know what to expect before you start.`,
+  fr: `${brand} rassemble ${tools.length} outils en ligne gratuits pour les tâches du quotidien : alléger une photo avant de l’envoyer, fusionner des PDF scannés, vérifier la longueur d’une meta description, formater une réponse JSON ou générer un mot de passe robuste.
+
+Contrairement à de nombreux convertisseurs en ligne, ${brand} traite vos fichiers **dans votre navigateur**. Les images sont décodées avec l’API Canvas, les PDF reconstruits avec les bibliothèques open source pdf-lib et PDF.js, et les opérations lourdes s’exécutent dans des Web Workers pour garder la page fluide. Comme rien n’est envoyé, les résultats sont rapides et vos documents restent privés.
+
+Chaque page d’outil explique ce que fait l’outil, comment l’utiliser, les formats pris en charge et ses limites, pour savoir à quoi vous attendre avant de commencer.`,
+  ar: `يجمع ${brand} ${tools.length} أداة مجانية على الإنترنت للمهام اليومية: تصغير صورة قبل إرسالها، ودمج ملفات PDF الممسوحة ضوئيًا، والتحقق من طول الوصف التعريفي، وتنسيق استجابة JSON، وإنشاء كلمة مرور قوية.
+
+على عكس كثير من المحولات على الإنترنت، يعالج ${brand} ملفاتك **داخل متصفحك**. تُفك ترميز الصور باستخدام Canvas، وتُعاد بناء ملفات PDF بمكتبات مفتوحة المصدر، وتعمل العمليات الثقيلة في Web Workers لتبقى الصفحة سريعة الاستجابة. ولأن لا شيء يُرفع، تكون النتائج سريعة وتبقى مستنداتك خاصة.
+
+تشرح كل صفحة أداة ما تفعله الأداة وكيفية استخدامها والصيغ المدعومة وحدودها، لتعرف ما تتوقعه قبل أن تبدأ.`,
+};
+const seoHtml = renderSafeMarkdown(hp.seo.body || seoDefault[locale]);
+const heroTitle = hp.hero.title || t('home.heroTitle');
+const heroSubtitle = hp.hero.subtitle || t('home.heroSubtitle');
+const why = [
+  { icon: 'Gift', title: t('home.why.free'), text: t('home.why.freeText') },
+  { icon: 'UserX', title: t('home.why.noSignup'), text: t('home.why.noSignupText') },
+  { icon: 'ShieldCheck', title: t('home.why.privacy'), text: t('home.why.privacyText') },
+  { icon: 'Zap', title: t('home.why.browser'), text: t('home.why.browserText') },
+  { icon: 'Smartphone', title: t('home.why.mobile'), text: t('home.why.mobileText') },
+];
+const origin = absoluteUrl('/');
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: brand,
+    url: absoluteUrl(lp('/')),
+    inLanguage: locale,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl(lp('/tools/'))}?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: brand,
+    url: origin,
+    ...(data.branding.logoUrl ? { logo: absoluteUrl(data.branding.logoUrl) } : {}),
+  },
+  ...(sections.includes('faq') ? [faqLd(data.homeFaqs)].filter(Boolean) : []),
+] as Record<string, unknown>[];
+const searchLabels = {
+  placeholder: t('search.placeholder'),
+  label: t('search.label'),
+  noResults: t('search.noResults'),
+  recent: t('search.recent'),
+  suggested: t('search.suggested'),
+  clear: t('search.clear'),
+  hint: t('search.hint'),
+};
+---
+
+<MainLayout
+  ctx={ctx}
+  rawTitle={locale === 'en'}
+  meta={{
+    title: locale === 'en' ? data.seo.homeTitle : heroTitle,
+    description: locale === 'en' ? data.seo.homeDescription : heroSubtitle,
+    path: '/',
+    locale,
+    alternates: [...LOCALES],
+    jsonLd,
+  }}
+>
+  {
+    sections.map((id) => {
+      if (id === 'hero')
+        return (
+          <section class="relative overflow-hidden border-b border-slate-200/70 bg-gradient-to-b from-brand-50 to-slate-50 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
+            <div class="container-page py-16 text-center sm:py-24">
+              <h1 class="mx-auto max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">{heroTitle}</h1>
+              <p class="mx-auto mt-5 max-w-2xl text-lg text-slate-600 dark:text-slate-300">{heroSubtitle}</p>
+              <div class="mx-auto mt-8 max-w-2xl text-start">
+                <SearchBox client:idle indexUrl={`/api/search-index.json?locale=${locale}`} labels={searchLabels} large shortcut />
+              </div>
+              <ul class="mx-auto mt-6 flex max-w-3xl flex-wrap justify-center gap-2" role="list">
+                {shortcuts.map((s) => (
+                  <li>
+                    <a
+                      href={lp(`/tools/${s.slug}/`)}
+                      class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    >
+                      <Icon name={s.icon} size={14} /> {s.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {hp.hero.ctaText && (
+                <a href={lp('/tools/')} class="btn-primary mt-8">
+                  {hp.hero.ctaText}
+                </a>
+              )}
+            </div>
+          </section>
+        );
+      if (id === 'popular')
+        return (
+          <section class="container-page py-14" aria-labelledby="popular-h">
+            <SectionHeading id="popular-h" title={hp.popular.title || t('home.popularTitle')} subtitle={hp.popular.subtitle || t('home.popularSubtitle')} href={lp('/popular/')} linkLabel={t('nav.popular')} />
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {popular.map((tool) => <ToolCard ctx={ctx} tool={tool} />)}
+            </div>
+            <AdSlot ctx={ctx} placement="home" />
+          </section>
+        );
+      if (id === 'categories')
+        return (
+          <section class="container-page py-14" aria-labelledby="cats-h">
+            <SectionHeading id="cats-h" title={hp.categories.title || t('home.categoriesTitle')} subtitle={hp.categories.subtitle} href={lp('/categories/')} linkLabel={t('nav.categories')} />
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {cats.map((c) => <CategoryCard ctx={ctx} category={c} count={countFor(c.id)} />)}
+            </div>
+          </section>
+        );
+      if (id === 'recent' && data.general.showRecentlyAdded)
+        return (
+          <section class="container-page py-14" aria-labelledby="recent-h">
+            <SectionHeading id="recent-h" title={hp.recent.title || t('home.recentTitle')} subtitle={hp.recent.subtitle} href={lp('/recent/')} linkLabel={t('nav.recent')} />
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {recent.map((tool) => <ToolCard ctx={ctx} tool={tool} showNew />)}
+            </div>
+          </section>
+        );
+      if (id === 'why')
+        return (
+          <section class="border-y border-slate-200/70 bg-white py-14 dark:border-slate-800 dark:bg-slate-900/40" aria-labelledby="why-h">
+            <div class="container-page">
+              <SectionHeading id="why-h" title={hp.why.title || t('home.whyTitle', { brand })} subtitle={hp.why.subtitle} />
+              <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-5" role="list">
+                {why.map((w) => (
+                  <li>
+                    <span class="inline-flex rounded-xl bg-accent-500/10 p-2.5 text-accent-600 dark:text-accent-500">
+                      <Icon name={w.icon} size={22} />
+                    </span>
+                    <h3 class="mt-3 font-semibold">{w.title}</h3>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{w.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        );
+      if (id === 'faq')
+        return (
+          <section class="container-page py-14" aria-labelledby="faq-h">
+            <SectionHeading id="faq-h" title={hp.faq.title || t('home.faqTitle')} subtitle={hp.faq.subtitle} />
+            <div class="mx-auto max-w-3xl divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+              {data.homeFaqs.map((f) => (
+                <details class="group p-5">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-slate-900 dark:text-white [&::-webkit-details-marker]:hidden">
+                    {f.q}
+                    <Icon name="ChevronDown" size={18} className="shrink-0 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        );
+      if (id === 'seo')
+        return (
+          <section class="container-page py-14" aria-labelledby="seo-h">
+            <div class="mx-auto max-w-3xl">
+              <h2 id="seo-h" class="text-2xl font-bold tracking-tight">{hp.seo.title || t('home.seoTitle')}</h2>
+              <div class="prose-content mt-4" set:html={seoHtml} />
+              <a href={lp('/tools/')} class="btn-primary mt-6">{t('home.viewAll')}</a>
+            </div>
+          </section>
+        );
+      return null;
+    })
+  }
+</MainLayout>

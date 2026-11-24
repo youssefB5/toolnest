@@ -1,0 +1,25 @@
+{
+  // Cloudflare Workers (Free plan) configuration.
+  // The official Astro adapter (@astrojs/cloudflare v13+) deploys to Workers with static assets;
+  // Cloudflare Pages is no longer supported by the adapter. See docs/DEPLOYMENT.md.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "toolnest",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": { "enabled": true },
+  // Public, non-secret variables. The Supabase anon key is designed to be public;
+  // security is enforced by Row Level Security. NEVER put the service_role key here.
+  "vars": {},
+  "env": {
+    "preview": {
+      "name": "toolnest-preview",
+      "vars": {}
+    }
+  }
+}

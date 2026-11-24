@@ -1,0 +1,58 @@
+---
+/**
+ * Minimal consent banner, rendered only when advertising is enabled and consent is required.
+ * Non-essential ad scripts are loaded only after the visitor clicks "Accept".
+ * Note: for EEA/UK visitors Google requires a certified CMP for personalized ads —
+ * see docs/SEO_GUIDE.md (AdSense section). This banner never pre-ticks consent.
+ */
+import { localePath } from '../../i18n';
+import type { PageContext } from '../../lib/page';
+interface Props {
+  ctx: PageContext;
+}
+const { data, locale } = Astro.props.ctx;
+const text =
+  locale === 'fr'
+    ? { msg: 'Nous souhaitons afficher des publicités, ce qui peut utiliser des cookies tiers. Acceptez-vous ?', ok: 'Accepter', no: 'Refuser', more: 'En savoir plus' }
+    : locale === 'ar'
+      ? { msg: 'نرغب في عرض إعلانات قد تستخدم ملفات تعريف ارتباط من جهات خارجية. هل توافق؟', ok: 'أوافق', no: 'أرفض', more: 'اعرف المزيد' }
+      : { msg: 'We would like to show ads, which may use third-party cookies. Do you accept?', ok: 'Accept', no: 'Decline', more: 'Learn more' };
+---
+
+<div
+  id="tn-consent"
+  hidden
+  role="dialog"
+  aria-live="polite"
+  aria-label="Cookie consent"
+  class="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-4 shadow-[var(--shadow-pop)] dark:border-slate-700 dark:bg-slate-900"
+  data-client={data.ads.adsenseClient}
+>
+  <p class="text-sm">{text.msg} <a class="text-brand-600 underline" href={localePath(locale, '/cookie-policy/')}>{text.more}</a></p>
+  <div class="mt-3 flex justify-end gap-2">
+    <button type="button" class="btn-secondary btn-sm" data-consent="denied">{text.no}</button>
+    <button type="button" class="btn-primary btn-sm" data-consent="granted">{text.ok}</button>
+  </div>
+</div>
+
+<script>
+  import { initAds } from '../../lib/ads/loader';
+  const box = document.getElementById('tn-consent');
+  if (box) {
+    const saved = localStorage.getItem('tn:consent');
+    if (!saved) box.hidden = false;
+    else if (saved === 'granted') initAds(box.dataset.client || '');
+    box.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const v = b.dataset.consent === 'granted' ? 'granted' : 'denied';
+        try {
+          localStorage.setItem('tn:consent', v);
+        } catch {
+          /* ignore */
+        }
+        box.hidden = true;
+        if (v === 'granted') initAds(box.dataset.client || '');
+      }),
+    );
+  }
+</script>

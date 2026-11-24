@@ -1,0 +1,18 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string | null;
+  id?: string;
+  href?: string;
+  linkLabel?: string;
+}
+const { title, subtitle, id, href, linkLabel } = Astro.props;
+---
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h2 id={id} class="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+    {subtitle && <p class="mt-1.5 text-slate-600 dark:text-slate-400">{subtitle}</p>}
+  </div>
+  {href && linkLabel && <a href={href} class="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-200">{linkLabel} →</a>}
+</div>

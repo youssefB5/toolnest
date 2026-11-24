@@ -1,0 +1,10 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import { getPageContext } from '../../lib/page';
+
+const ctx = await getPageContext(Astro);
+const tool = ctx?.data.tools.find((t) => t.slug === Astro.params.slug);
+if (!ctx || !tool) return Astro.rewrite('/404');
+---
+
+<ToolLayout ctx={ctx} tool={tool} />

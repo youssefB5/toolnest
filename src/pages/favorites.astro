@@ -1,0 +1,9 @@
+---
+import FavoritesView from '../views/FavoritesView.astro';
+import { getPageContext } from '../lib/page';
+
+const ctx = await getPageContext(Astro);
+if (!ctx) return Astro.rewrite('/404');
+---
+
+<FavoritesView ctx={ctx} />

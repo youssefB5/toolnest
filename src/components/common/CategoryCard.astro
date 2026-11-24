@@ -1,0 +1,28 @@
+---
+import { Icon } from './Icon';
+import { localePath } from '../../i18n';
+import type { PageContext } from '../../lib/page';
+import type { PublicCategory } from '../../types/tool';
+
+interface Props {
+  ctx: PageContext;
+  category: PublicCategory;
+  count: number;
+}
+const { ctx, category, count } = Astro.props;
+const { locale, t } = ctx;
+---
+
+<a
+  href={localePath(locale, `/categories/${category.slug}/`)}
+  class="card group flex items-start gap-4 p-5 transition-shadow hover:shadow-[var(--shadow-pop)]"
+>
+  <span class="rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 p-3 text-white">
+    <Icon name={category.icon} size={22} />
+  </span>
+  <span class="min-w-0">
+    <span class="block font-semibold text-slate-900 dark:text-white">{category.title}</span>
+    <span class="mt-1 line-clamp-2 block text-sm text-slate-600 dark:text-slate-400">{category.description}</span>
+    <span class="mt-2 block text-xs font-medium text-brand-600 dark:text-brand-200">{count} {t('common.tools')}</span>
+  </span>
+</a>

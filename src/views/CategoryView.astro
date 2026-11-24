@@ -1,0 +1,82 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import AdSlot from '../components/layout/AdSlot.astro';
+import { Icon } from '../components/common/Icon';
+import { LOCALES, localePath } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import { absoluteUrl, breadcrumbLd } from '../lib/seo/meta';
+import type { PageContext } from '../lib/page';
+import type { PublicCategory } from '../types/tool';
+
+interface Props {
+  ctx: PageContext;
+  category: PublicCategory;
+}
+const { ctx, category } = Astro.props;
+const { data, locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const tools = listedTools(data).filter((x) => x.category === category.id);
+const others = data.categories.filter((c) => c.visible && c.id !== category.id);
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  { name: t('nav.categories'), href: lp('/categories/') },
+  { name: category.title, href: lp(`/categories/${category.slug}/`) },
+];
+const collection = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: category.title,
+  description: category.description,
+  url: absoluteUrl(lp(`/categories/${category.slug}/`)),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: tools.map((x, i) => ({ '@type': 'ListItem', position: i + 1, url: absoluteUrl(lp(`/tools/${x.slug}/`)), name: x.title })),
+  },
+};
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{
+    title: category.seoTitle || `${category.title} — ${tools.length} ${t('common.tools')}`,
+    description: category.metaDescription || category.description,
+    path: `/categories/${category.slug}/`,
+    locale,
+    alternates: [...LOCALES],
+    // An empty category is not useful to search engines.
+    noindex: tools.length === 0,
+    jsonLd: [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href }))), collection],
+  }}
+>
+  <div class="container-page py-10">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+    <div class="mt-4 flex items-start gap-4">
+      <span class="hidden rounded-2xl bg-gradient-to-br from-brand-500 to-accent-500 p-3.5 text-white sm:block">
+        <Icon name={category.icon} size={28} />
+      </span>
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{category.title}</h1>
+        <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-400">{category.description}</p>
+        <p class="mt-1 text-sm text-slate-500">{t('cat.toolsIn', { n: tools.length })}</p>
+      </div>
+    </div>
+    <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {tools.map((tool) => <li><ToolCard ctx={ctx} tool={tool} headingLevel="h2" /></li>)}
+    </ul>
+    <AdSlot ctx={ctx} placement="category" />
+    <section class="mt-14" aria-labelledby="other-cats">
+      <h2 id="other-cats" class="text-xl font-semibold">{t('nav.categories')}</h2>
+      <ul class="mt-4 flex flex-wrap gap-2" role="list">
+        {others.map((c) => (
+          <li>
+            <a href={lp(`/categories/${c.slug}/`)} class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm hover:border-brand-500 dark:border-slate-700 dark:bg-slate-900">
+              <Icon name={c.icon} size={14} /> {c.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</MainLayout>

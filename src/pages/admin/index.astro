@@ -1,0 +1,12 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { applyPageCsp } from '../../lib/page';
+import AdminApp from '../../components/admin/AdminApp';
+
+await applyPageCsp(Astro, false);
+---
+
+<AdminLayout title="Dashboard">
+  <AdminApp client:only="react" />
+  <noscript><p class="p-8">The admin dashboard requires JavaScript.</p></noscript>
+</AdminLayout>

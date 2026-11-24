@@ -1,0 +1,53 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import { localePath, LOCALES } from '../i18n';
+import { renderSafeMarkdown } from '../lib/security/markdown';
+import { breadcrumbLd } from '../lib/seo/meta';
+import type { PageContext } from '../lib/page';
+import type { PublicPage } from '../lib/site/types';
+
+interface Props {
+  ctx: PageContext;
+  page: PublicPage;
+  path: string;
+}
+const { ctx, page, path } = Astro.props;
+const { locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const html = renderSafeMarkdown(page.body);
+const firstPara = page.body.replace(/[#*_`>[\]()-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  { name: page.title, href: lp(path) },
+];
+const fallbackNotice =
+  locale === 'ar' ? 'هذه الصفحة غير متوفرة بعد بالعربية، لذا تُعرض بالإنجليزية.' : locale === 'fr' ? 'Cette page n’est pas encore traduite ; elle est affichée en anglais.' : '';
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{
+    title: page.seoTitle || page.title,
+    description: page.metaDescription || firstPara,
+    path,
+    locale,
+    // Untranslated fallbacks are not indexed and point to the English original.
+    noindex: !page.localized,
+    canonicalPath: page.localized ? undefined : localePath('en', path),
+    // Built-in pages exist in English and French; Arabic falls back to English unless an admin publishes it.
+    alternates: page.localized && locale !== 'ar' ? LOCALES.filter((l) => l !== 'ar') : [],
+    ogType: 'article',
+    jsonLd: [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href })))],
+  }}
+>
+  <div class="container-page py-10">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+    <article class="card mx-auto mt-6 max-w-3xl p-6 sm:p-10">
+      {!page.localized && fallbackNotice && <p class="mb-6 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-100" lang={locale}>{fallbackNotice}</p>}
+      <h1 class="text-3xl font-bold tracking-tight">{page.title}</h1>
+      <p class="mt-2 text-xs text-slate-500">{t('common.lastUpdated')}: <time datetime={page.updatedAt}>{page.updatedAt}</time></p>
+      <div class="prose-content mt-6" lang={page.localized ? locale : 'en'} dir={!page.localized && locale === 'ar' ? 'ltr' : undefined} set:html={html} />
+    </article>
+  </div>
+</MainLayout>

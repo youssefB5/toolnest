@@ -1,0 +1,352 @@
+import type { ToolDefinition } from '../../types/tool';
+
+const privacy = 'Are my PDF files uploaded?';
+const privacyA =
+  'No. PDFs are read and rewritten in your browser with the open-source pdf-lib and PDF.js libraries. They never reach our server.';
+const encrypted =
+  'Password-protected (encrypted) PDFs are not modified. The tool will not bypass a document’s encryption or permissions.';
+
+export const PDF_TOOLS: ToolDefinition[] = [
+  {
+    id: 'pdf-merge',
+    slug: 'pdf-merge',
+    implementation: 'pdf-merge',
+    category: 'pdf-tools',
+    icon: 'Combine',
+    title: 'Merge PDF',
+    short: 'Combine several PDF files into one document in the order you choose.',
+    keywords: ['merge pdf', 'combine pdf', 'join pdf files', 'pdf binder'],
+    related: ['pdf-split', 'pdf-reorder', 'images-to-pdf'],
+    addedAt: '2026-09-08',
+    popular: true,
+    featured: true,
+    fileTool: true,
+    content: {
+      description:
+        'Join reports, scanned pages, invoices or chapters into a single PDF. Drag the files into the order you want, then merge — every page keeps its original size and orientation.',
+      steps: ['Add two or more PDF files.', 'Reorder them with the arrow buttons.', 'Click “Merge PDF” and download the result.'],
+      formats: ['PDF'],
+      limitations: [encrypted, 'Form fields and bookmarks of the source files may not be preserved in the merged document.'],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Is there a page limit?', a: 'No fixed limit; it depends on your device memory. Each file can be up to the configured size limit (50 MB by default).' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Fusionner des PDF', short: 'Combinez plusieurs fichiers PDF en un seul document, dans l’ordre choisi.' },
+      ar: { title: 'دمج ملفات PDF', short: 'اجمع عدة ملفات PDF في مستند واحد بالترتيب الذي تختاره.' },
+    },
+  },
+  {
+    id: 'pdf-split',
+    slug: 'pdf-split',
+    implementation: 'pdf-split',
+    category: 'pdf-tools',
+    icon: 'Split',
+    title: 'Split PDF',
+    short: 'Split a PDF into single pages, fixed-size chunks or custom page ranges.',
+    keywords: ['split pdf', 'separate pdf pages', 'divide pdf', 'pdf cutter'],
+    related: ['pdf-extract-pages', 'pdf-merge', 'pdf-page-counter'],
+    addedAt: '2026-09-08',
+    popular: true,
+    fileTool: true,
+    content: {
+      description:
+        'Break a long PDF into smaller documents: one file per page, a file every N pages, or files defined by ranges like “1-3, 4-10, 11-”. The resulting files are delivered in a ZIP archive.',
+      steps: ['Select a PDF.', 'Choose a split mode and enter the ranges if needed.', 'Click “Split” and download the ZIP.'],
+      formats: ['PDF'],
+      limitations: [encrypted],
+      examples: ['Ranges “1-2, 5, 8-” on a 10-page file produce three PDFs: pages 1–2, page 5 and pages 8–10.'],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'What range syntax is supported?', a: 'Single pages (5), ranges (2-7), open ranges (8-) and comma-separated combinations.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Diviser un PDF', short: 'Divisez un PDF en pages, en blocs de taille fixe ou selon des plages.' },
+      ar: { title: 'تقسيم ملف PDF', short: 'قسّم ملف PDF إلى صفحات منفردة أو مجموعات ثابتة أو نطاقات مخصصة.' },
+    },
+  },
+  {
+    id: 'pdf-compress',
+    slug: 'pdf-compress',
+    implementation: 'pdf-compress',
+    category: 'pdf-tools',
+    icon: 'FileArchive',
+    title: 'Compress PDF',
+    short: 'Reduce PDF size losslessly, or strongly by converting pages to compressed images.',
+    keywords: ['compress pdf', 'reduce pdf size', 'shrink pdf', 'pdf optimizer'],
+    related: ['pdf-merge', 'image-compressor', 'pdf-info'],
+    addedAt: '2026-09-09',
+    popular: true,
+    fileTool: true,
+    content: {
+      description:
+        'Two honest modes: “Lossless” rewrites the PDF structure with compressed object streams and removes unused objects, keeping text selectable. “Strong” re-renders every page as a JPEG image, which can shrink scanned documents dramatically but makes the text non-selectable.',
+      steps: ['Select a PDF.', 'Choose Lossless or Strong (with image quality and resolution).', 'Compress and compare sizes before downloading.'],
+      formats: ['PDF'],
+      limitations: [
+        'Compression is not guaranteed. A PDF that is already optimized may not get smaller in Lossless mode; the tool shows the real result and keeps the original if it is smaller.',
+        'Strong mode removes selectable text, links and form fields because each page becomes an image.',
+        encrypted,
+      ],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Which mode should I choose?', a: 'Use Lossless for text documents. Use Strong for scans and image-heavy files where selectable text is not needed.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Compresser un PDF', short: 'Réduisez la taille d’un PDF sans perte, ou fortement en convertissant les pages en images.' },
+      ar: { title: 'ضغط ملف PDF', short: 'قلّل حجم PDF دون فقدان أو بقوة عبر تحويل الصفحات إلى صور مضغوطة.' },
+    },
+  },
+  {
+    id: 'pdf-rotate',
+    slug: 'pdf-rotate',
+    implementation: 'pdf-rotate',
+    category: 'pdf-tools',
+    icon: 'RotateCw',
+    title: 'Rotate PDF',
+    short: 'Rotate all pages or selected pages of a PDF by 90°, 180° or 270°.',
+    keywords: ['rotate pdf', 'turn pdf pages', 'fix pdf orientation'],
+    related: ['pdf-reorder', 'image-rotator', 'pdf-extract-pages'],
+    addedAt: '2026-09-09',
+    fileTool: true,
+    content: {
+      description:
+        'Fix scanned pages that came out sideways or upside down. Rotate the whole document or only specific pages, and keep everything else untouched.',
+      steps: ['Select a PDF.', 'Pick the angle and choose “All pages” or enter a page selection.', 'Rotate and download.'],
+      formats: ['PDF'],
+      limitations: [encrypted],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Is the quality affected?', a: 'No. Rotation changes a page attribute; content is not re-rendered.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Pivoter un PDF', short: 'Faites pivoter toutes les pages ou une sélection de 90°, 180° ou 270°.' },
+      ar: { title: 'تدوير ملف PDF', short: 'أدر كل الصفحات أو صفحات محددة بزاوية 90° أو 180° أو 270°.' },
+    },
+  },
+  {
+    id: 'pdf-extract-pages',
+    slug: 'pdf-extract-pages',
+    implementation: 'pdf-extract-pages',
+    category: 'pdf-tools',
+    icon: 'FileOutput',
+    title: 'Extract PDF Pages',
+    short: 'Pick specific pages and save them as a new PDF.',
+    keywords: ['extract pdf pages', 'select pdf pages', 'save pages from pdf'],
+    related: ['pdf-split', 'pdf-reorder', 'pdf-merge'],
+    addedAt: '2026-09-10',
+    fileTool: true,
+    content: {
+      description:
+        'Keep only the pages you need — for example the signed page of a contract or one chapter of a manual. Select pages by clicking thumbnails or typing ranges.',
+      steps: ['Select a PDF.', 'Click page thumbnails or type a selection like “1, 3-5”.', 'Extract and download the new PDF.'],
+      formats: ['PDF'],
+      limitations: [encrypted],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Does the original file change?', a: 'No. A new PDF is created; your original stays as it is on your device.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Extraire des pages PDF', short: 'Choisissez des pages précises et enregistrez-les dans un nouveau PDF.' },
+      ar: { title: 'استخراج صفحات PDF', short: 'اختر صفحات محددة واحفظها في ملف PDF جديد.' },
+    },
+  },
+  {
+    id: 'pdf-reorder',
+    slug: 'pdf-reorder',
+    implementation: 'pdf-reorder',
+    category: 'pdf-tools',
+    icon: 'ArrowUpDown',
+    title: 'Reorder PDF Pages',
+    short: 'Rearrange, reverse or delete pages of a PDF with visual thumbnails.',
+    keywords: ['reorder pdf', 'rearrange pdf pages', 'move pdf pages', 'delete pdf page'],
+    related: ['pdf-extract-pages', 'pdf-rotate', 'pdf-merge'],
+    addedAt: '2026-09-10',
+    fileTool: true,
+    content: {
+      description:
+        'See every page as a thumbnail, move pages earlier or later, reverse the whole order or remove pages you do not need, then save the new arrangement.',
+      steps: ['Select a PDF.', 'Use the arrows on each thumbnail to move it, or the remove button to drop it.', 'Save and download.'],
+      formats: ['PDF'],
+      limitations: [encrypted, 'Thumbnails for very long documents (over 300 pages) are rendered on demand and may take a moment.'],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Can I use the keyboard?', a: 'Yes. Every move and remove action is a regular focusable button.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Réorganiser les pages PDF', short: 'Réordonnez, inversez ou supprimez des pages avec des miniatures.' },
+      ar: { title: 'إعادة ترتيب صفحات PDF', short: 'أعد ترتيب صفحات PDF أو اعكسها أو احذفها باستخدام صور مصغرة.' },
+    },
+  },
+  {
+    id: 'images-to-pdf',
+    slug: 'images-to-pdf',
+    implementation: 'images-to-pdf',
+    category: 'pdf-tools',
+    icon: 'Images',
+    title: 'Images to PDF',
+    short: 'Turn JPG and PNG images into a single PDF with page size and margin options.',
+    keywords: ['jpg to pdf', 'png to pdf', 'images to pdf', 'photo to pdf'],
+    related: ['pdf-to-images', 'pdf-merge', 'image-compressor'],
+    addedAt: '2026-09-11',
+    popular: true,
+    fileTool: true,
+    content: {
+      description:
+        'Combine photos, scans or screenshots into one PDF. Choose A4, US Letter or “fit to image”, portrait or landscape, and a margin. Images are embedded without recompression when possible.',
+      steps: ['Add images and arrange their order.', 'Pick page size, orientation and margin.', 'Create the PDF and download it.'],
+      formats: ['JPEG', 'PNG', 'WebP (converted to PNG/JPEG first)'],
+      limitations: ['Very large photos produce large PDFs; compress them first if size matters.'],
+      faq: [
+        { q: 'Are my images uploaded?', a: 'No. The PDF is assembled in your browser.' },
+        { q: 'Does it keep image quality?', a: 'JPEG and PNG are embedded as-is. WebP is converted because the PDF format does not support it.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Images vers PDF', short: 'Transformez des images JPG et PNG en un seul PDF, avec format et marges.' },
+      ar: { title: 'تحويل الصور إلى PDF', short: 'حوّل صور JPG وPNG إلى ملف PDF واحد مع خيارات الحجم والهوامش.' },
+    },
+  },
+  {
+    id: 'pdf-to-images',
+    slug: 'pdf-to-images',
+    implementation: 'pdf-to-images',
+    category: 'pdf-tools',
+    icon: 'ImagePlus',
+    title: 'PDF to Images',
+    short: 'Convert PDF pages to PNG or JPG images at the resolution you choose.',
+    keywords: ['pdf to jpg', 'pdf to png', 'convert pdf to image', 'pdf page image'],
+    related: ['images-to-pdf', 'pdf-extract-pages', 'image-compressor'],
+    addedAt: '2026-09-11',
+    popular: true,
+    fileTool: true,
+    content: {
+      description:
+        'Render each page of a PDF as a high-quality image using PDF.js. Choose PNG for sharp text or JPEG for smaller files, and a resolution from 72 to 300 DPI.',
+      steps: ['Select a PDF.', 'Choose format, resolution and pages.', 'Convert and download images individually or as a ZIP.'],
+      formats: ['Input: PDF', 'Output: PNG, JPEG'],
+      limitations: [encrypted, 'High resolutions on large pages use a lot of memory; the tool caps output at 10,000 px per side.'],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Which DPI should I use?', a: '150 DPI is good for screens; 300 DPI for printing.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'PDF vers images', short: 'Convertissez les pages d’un PDF en images PNG ou JPG à la résolution voulue.' },
+      ar: { title: 'تحويل PDF إلى صور', short: 'حوّل صفحات PDF إلى صور PNG أو JPG بالدقة التي تختارها.' },
+    },
+  },
+  {
+    id: 'pdf-page-numbers',
+    slug: 'pdf-page-numbers',
+    implementation: 'pdf-page-numbers',
+    category: 'pdf-tools',
+    icon: 'ListOrdered',
+    title: 'Add Page Numbers to PDF',
+    short: 'Stamp page numbers on a PDF with position, format, size and starting number options.',
+    keywords: ['add page numbers pdf', 'number pdf pages', 'pdf pagination'],
+    related: ['pdf-watermark', 'pdf-merge', 'pdf-reorder'],
+    addedAt: '2026-09-12',
+    fileTool: true,
+    content: {
+      description:
+        'Add “1”, “Page 1” or “Page 1 of 12” to every page. Choose one of six positions, the font size, the margin and the number to start from — useful for theses, reports and court bundles.',
+      steps: ['Select a PDF.', 'Choose format, position, size and starting number.', 'Apply and download.'],
+      formats: ['PDF'],
+      limitations: [encrypted, 'Numbers are drawn with the standard Helvetica font (Latin characters only).'],
+      faq: [
+        { q: privacy, a: privacyA },
+        { q: 'Can I skip the cover page?', a: 'Yes. Set “Skip first N pages” and choose the starting number.' },
+      ],
+    },
+    i18n: {
+      fr: { title: 'Numéroter les pages d’un PDF', short: 'Ajoutez des numéros de page avec position, format, taille et numéro de départ.' },
+      ar: { title: 'إضافة أرقام الصفحات إلى PDF', short: 'أضف أرقام الصفحات إلى PDF مع خيارات الموضع والتنسيق والحجم.' },
+    },
+  },
+  {
+    id: 'pdf-watermark',
+    slug: 'pdf-watermark',
+    implementation: 'pdf-watermark',
+    category: 'pdf-tools',
+    icon: 'Stamp',
+    title: 'Add Watermark to PDF',
+    short: 'Add a text watermark such as “CONFIDENTIAL” or “DRAFT” with opacity and angle control.',
+    keywords: ['watermark pdf', 'stamp pdf', 'confidential pdf', 'draft watermark'],
+    related: ['pdf-page-numbers', 'pdf-merge', 'pdf-compress'],
+    addedAt: '2026-09-12',
+    fileTool: true,
+    content: {
+      description:
+        'Mark documents as drafts, samples or confidential copies. Set the text, size, color, opacity and rotation, and apply it to all pages or a selection.',
+      steps: ['Select a PDF.', 'Type the watermark text and adjust its appearance.', 'Apply and download.'],
+      formats: ['PDF'],
+      limitations: [
+        encrypted,
+        'The watermark is drawn on top of the page content. It is a visual mark, not a security measure: it can be removed with PDF editing software.',
+        'Standard Helvetica font: Latin characters only.',
+      ],
+      faq: [{ q: privacy, a: privacyA }],
+    },
+    i18n: {
+      fr: { title: 'Filigrane PDF', short: 'Ajoutez un filigrane texte (CONFIDENTIEL, BROUILLON) avec opacité et angle.' },
+      ar: { title: 'إضافة علامة مائية إلى PDF', short: 'أضف علامة مائية نصية مثل «سري» مع التحكم في الشفافية والزاوية.' },
+    },
+  },
+  {
+    id: 'pdf-page-counter',
+    slug: 'pdf-page-counter',
+    implementation: 'pdf-page-counter',
+    category: 'pdf-tools',
+    icon: 'Hash',
+    title: 'PDF Page Counter',
+    short: 'Count the pages of one or many PDFs instantly, with a total.',
+    keywords: ['count pdf pages', 'pdf page count', 'number of pages pdf'],
+    related: ['pdf-info', 'pdf-split', 'pdf-merge'],
+    addedAt: '2026-09-13',
+    fileTool: true,
+    content: {
+      description:
+        'Need to know how many pages you are about to print or submit? Drop any number of PDFs and see the page count of each file plus the grand total.',
+      steps: ['Add PDF files.', 'Read the page count per file and the total.'],
+      formats: ['PDF'],
+      limitations: ['Encrypted PDFs that cannot be opened without a password are reported as such.'],
+      faq: [{ q: privacy, a: privacyA }],
+    },
+    i18n: {
+      fr: { title: 'Compteur de pages PDF', short: 'Comptez instantanément les pages d’un ou plusieurs PDF, avec le total.' },
+      ar: { title: 'عدّاد صفحات PDF', short: 'احسب عدد صفحات ملف أو عدة ملفات PDF فورًا مع المجموع.' },
+    },
+  },
+  {
+    id: 'pdf-info',
+    slug: 'pdf-info',
+    implementation: 'pdf-info',
+    category: 'pdf-tools',
+    icon: 'FileSearch',
+    title: 'PDF Information Viewer',
+    short: 'View a PDF’s title, author, producer, dates, page sizes and PDF version.',
+    keywords: ['pdf properties', 'pdf metadata', 'pdf info', 'pdf version'],
+    related: ['pdf-page-counter', 'image-metadata-viewer', 'pdf-compress'],
+    addedAt: '2026-09-13',
+    fileTool: true,
+    content: {
+      description:
+        'Inspect the document properties stored in a PDF: title, author, subject, keywords, creator application, producer, creation and modification dates, PDF version, encryption flag and the size of every page.',
+      steps: ['Select a PDF.', 'Review the properties table and page sizes.'],
+      formats: ['PDF'],
+      limitations: ['Properties are read from the document information dictionary; XMP-only metadata may not be shown.'],
+      faq: [{ q: privacy, a: privacyA }],
+    },
+    i18n: {
+      fr: { title: 'Informations PDF', short: 'Affichez titre, auteur, producteur, dates, formats de page et version d’un PDF.' },
+      ar: { title: 'عارض معلومات PDF', short: 'اعرض عنوان ملف PDF ومؤلفه وتواريخه وأحجام صفحاته وإصداره.' },
+    },
+  },
+];

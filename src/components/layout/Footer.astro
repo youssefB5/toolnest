@@ -1,0 +1,82 @@
+---
+import Logo from '../common/Logo.astro';
+import { LOCALES, LOCALE_NAMES, localePath } from '../../i18n';
+import { listedTools } from '../../lib/site/merge';
+import type { PageContext } from '../../lib/page';
+
+interface Props {
+  ctx: PageContext;
+}
+const { ctx } = Astro.props;
+const { data, locale, t, path } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const popular = listedTools(data).filter((x) => x.popular).slice(0, 6);
+const cats = data.categories.filter((c) => c.visible);
+const year = new Date().getFullYear();
+const company = [
+  { href: lp('/about/'), label: t('footer.about') },
+  { href: lp('/contact/'), label: t('footer.contact') },
+  { href: lp('/help/'), label: t('footer.help') },
+];
+const legal = [
+  { href: lp('/privacy-policy/'), label: t('footer.privacy') },
+  { href: lp('/terms/'), label: t('footer.terms') },
+  { href: lp('/cookie-policy/'), label: t('footer.cookies') },
+  { href: lp('/disclaimer/'), label: t('footer.disclaimer') },
+];
+---
+
+<footer class="mt-16 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40">
+  <div class="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-6">
+    <div class="lg:col-span-2">
+      <a href={lp('/')} class="flex items-center gap-2"><Logo ctx={ctx} size={28} /></a>
+      <p class="mt-3 max-w-xs text-sm text-slate-600 dark:text-slate-400">{t('footer.tagline')}</p>
+      {
+        data.branding.social.length > 0 && (
+          <ul class="mt-4 flex flex-wrap gap-3 text-sm" role="list">
+            {data.branding.social.map((s) => (
+              <li>
+                <a href={s.url} rel="noopener noreferrer me" target="_blank" class="text-slate-600 hover:text-brand-600 dark:text-slate-400">
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+    <nav aria-label={t('footer.categories')}>
+      <h2 class="text-sm font-semibold">{t('footer.categories')}</h2>
+      <ul class="mt-3 space-y-2 text-sm" role="list">
+        {cats.map((c) => <li><a class="text-slate-600 hover:text-brand-600 dark:text-slate-400" href={lp(`/categories/${c.slug}/`)}>{c.title}</a></li>)}
+      </ul>
+    </nav>
+    <nav aria-label={t('footer.popular')}>
+      <h2 class="text-sm font-semibold">{t('footer.popular')}</h2>
+      <ul class="mt-3 space-y-2 text-sm" role="list">
+        {popular.map((p) => <li><a class="text-slate-600 hover:text-brand-600 dark:text-slate-400" href={lp(`/tools/${p.slug}/`)}>{p.title}</a></li>)}
+      </ul>
+    </nav>
+    <nav aria-label={t('footer.company')}>
+      <h2 class="text-sm font-semibold">{t('footer.company')}</h2>
+      <ul class="mt-3 space-y-2 text-sm" role="list">
+        {company.map((l) => <li><a class="text-slate-600 hover:text-brand-600 dark:text-slate-400" href={l.href}>{l.label}</a></li>)}
+      </ul>
+      <h2 class="mt-6 text-sm font-semibold">{t('footer.languages')}</h2>
+      <ul class="mt-3 space-y-2 text-sm" role="list">
+        {LOCALES.map((l) => <li><a class="text-slate-600 hover:text-brand-600 dark:text-slate-400" href={localePath(l, path)} lang={l} hreflang={l}>{LOCALE_NAMES[l]}</a></li>)}
+      </ul>
+    </nav>
+    <nav aria-label={t('footer.legal')}>
+      <h2 class="text-sm font-semibold">{t('footer.legal')}</h2>
+      <ul class="mt-3 space-y-2 text-sm" role="list">
+        {legal.map((l) => <li><a class="text-slate-600 hover:text-brand-600 dark:text-slate-400" href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t border-slate-200 dark:border-slate-800">
+    <p class="container-page py-5 text-xs text-slate-500 dark:text-slate-400">
+      © {year} {data.branding.footerCopyright || data.branding.siteName}. {t('footer.rights')}
+    </p>
+  </div>
+</footer>

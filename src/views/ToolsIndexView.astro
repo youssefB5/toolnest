@@ -1,0 +1,106 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import { Icon } from '../components/common/Icon';
+import { LOCALES, localePath } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import { absoluteUrl, breadcrumbLd } from '../lib/seo/meta';
+import type { PageContext } from '../lib/page';
+
+interface Props {
+  ctx: PageContext;
+}
+const { ctx } = Astro.props;
+const { data, locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const brand = data.branding.siteName;
+const tools = listedTools(data);
+const cats = data.categories.filter((c) => c.visible);
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  { name: t('nav.allTools'), href: lp('/tools/') },
+];
+const itemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: tools.map((x, i) => ({ '@type': 'ListItem', position: i + 1, url: absoluteUrl(lp(`/tools/${x.slug}/`)), name: x.title })),
+};
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{
+    title: t('pages.allTitle'),
+    description: t('pages.allDesc', { brand }),
+    path: '/tools/',
+    locale,
+    alternates: [...LOCALES],
+    jsonLd: [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href }))), itemList],
+  }}
+>
+  <div class="container-page py-10">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{t('pages.allTitle')}</h1>
+    <p class="mt-2 text-slate-600 dark:text-slate-400">{t('pages.allDesc', { brand })}</p>
+
+    <div class="mt-6 max-w-md">
+      <label for="tool-filter" class="sr-only">{t('search.label')}</label>
+      <div class="relative">
+        <Icon name="Search" size={16} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input id="tool-filter" type="search" class="input ps-9" placeholder={t('search.placeholder')} autocomplete="off" maxlength="100" />
+      </div>
+      <p id="tool-filter-status" class="mt-2 text-sm text-slate-500" aria-live="polite"></p>
+    </div>
+
+    {
+      cats.map((c) => {
+        const list = tools.filter((x) => x.category === c.id);
+        if (!list.length) return null;
+        return (
+          <section class="mt-12" data-cat-section aria-labelledby={`cat-${c.id}`}>
+            <h2 id={`cat-${c.id}`} class="flex items-center gap-2 text-xl font-semibold">
+              <Icon name={c.icon} size={20} className="text-brand-600" />
+              <a href={lp(`/categories/${c.slug}/`)} class="hover:underline">{c.title}</a>
+            </h2>
+            <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" role="list">
+              {list.map((tool) => (
+                <li data-tool-item data-search={`${tool.title} ${tool.short} ${tool.keywords.join(' ')} ${c.title}`.toLowerCase()}>
+                  <ToolCard ctx={ctx} tool={tool} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })
+    }
+  </div>
+</MainLayout>
+
+<script>
+  import { normalize } from '../lib/search/fuzzy';
+  const input = document.getElementById('tool-filter') as HTMLInputElement | null;
+  const status = document.getElementById('tool-filter-status');
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-tool-item]'));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-cat-section]'));
+  function apply(q: string) {
+    const terms = normalize(q).split(' ').filter(Boolean);
+    let n = 0;
+    for (const it of items) {
+      const hay = normalize(it.dataset.search || '');
+      const ok = terms.every((t) => hay.includes(t));
+      it.hidden = !ok;
+      if (ok) n++;
+    }
+    for (const s of sections) s.hidden = !s.querySelector('[data-tool-item]:not([hidden])');
+    if (status) status.textContent = terms.length ? `${n} / ${items.length}` : '';
+  }
+  if (input) {
+    const q = new URLSearchParams(location.search).get('q');
+    if (q) {
+      input.value = q.slice(0, 100);
+      apply(input.value);
+    }
+    input.addEventListener('input', () => apply(input.value));
+  }
+</script>

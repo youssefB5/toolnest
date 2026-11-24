@@ -1,0 +1,90 @@
+---
+import '../styles/global.css';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import AnnouncementBar from '../components/layout/AnnouncementBar.astro';
+import ConsentBanner from '../components/layout/ConsentBanner.astro';
+import AdSlot from '../components/layout/AdSlot.astro';
+import AdAutoInit from '../components/layout/AdAutoInit.astro';
+import { dir, HTML_LANG, OG_LOCALE, localePath } from '../i18n';
+import { absoluteUrl, clampDescription, formatTitle, hreflangLinks, jsonLdString, type PageMeta } from '../lib/seo/meta';
+import { THEME_INIT_SCRIPT } from '../lib/security/csp';
+import type { PageContext } from '../lib/page';
+
+interface Props {
+  ctx: PageContext;
+  meta: PageMeta;
+  /** Raw title already formatted (homepage) */
+  rawTitle?: boolean;
+}
+const { ctx, meta, rawTitle = false } = Astro.props;
+const { data, locale, t } = ctx;
+const title = rawTitle ? meta.title : formatTitle(data, meta.title);
+const description = clampDescription(meta.description || data.seo.defaultDescription);
+const canonical = absoluteUrl(meta.canonicalPath ?? localePath(locale, meta.path));
+const noindex = meta.noindex || !data.seo.allowIndexing;
+const alternates = hreflangLinks(meta.path, meta.alternates ?? []);
+const ogImage = meta.ogImage ?? data.seo.ogImageUrl;
+const verification = data.seo.googleSiteVerification || import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION || '';
+
+// CSP hashes/resources for this page are added in the page frontmatter (see applyPageCsp in lib/page.ts).
+const adsActive = data.ads.enabled && data.ads.provider === 'adsense' && !!data.ads.adsenseClient;
+const brandVars = `--brand:${data.branding.primaryColor};--accent:${data.branding.accentColor}`;
+---
+
+<!doctype html>
+<html
+  lang={HTML_LANG[locale]}
+  dir={dir(locale)}
+  data-default-theme={data.branding.defaultTheme}
+  style={brandVars}
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+    <meta name="theme-color" content={data.branding.primaryColor} />
+    <link rel="icon" href={data.branding.faviconUrl || '/favicon.svg'} type={data.branding.faviconUrl ? undefined : 'image/svg+xml'} />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    {verification && <meta name="google-site-verification" content={verification} />}
+
+    <meta property="og:type" content={meta.ogType ?? 'website'} />
+    <meta property="og:site_name" content={data.branding.siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={OG_LOCALE[locale]} />
+    {ogImage && <meta property="og:image" content={absoluteUrl(ogImage)} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {data.seo.twitterHandle && <meta name="twitter:site" content={data.seo.twitterHandle} />}
+    {ogImage && <meta name="twitter:image" content={absoluteUrl(ogImage)} />}
+
+    {(meta.jsonLd ?? []).map((obj) => <script type="application/ld+json" set:html={jsonLdString(obj)} />)}
+    <script is:inline set:html={THEME_INIT_SCRIPT} />
+    <slot name="head" />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only z-50 rounded-md bg-brand-600 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+      >{t('nav.skip')}</a
+    >
+    <AnnouncementBar ctx={ctx} />
+    <Header ctx={ctx} />
+    <AdSlot ctx={ctx} placement="header" />
+    <main id="main" class="flex-1" tabindex="-1">
+      <slot />
+    </main>
+    <AdSlot ctx={ctx} placement="footer" />
+    <Footer ctx={ctx} />
+    {adsActive && data.ads.requireConsent && <ConsentBanner ctx={ctx} />}
+    {adsActive && !data.ads.requireConsent && <AdAutoInit />}
+  </body>
+</html>

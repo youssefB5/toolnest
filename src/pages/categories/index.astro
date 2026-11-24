@@ -1,0 +1,9 @@
+---
+import CategoriesIndexView from '../../views/CategoriesIndexView.astro';
+import { getPageContext } from '../../lib/page';
+
+const ctx = await getPageContext(Astro);
+if (!ctx) return Astro.rewrite('/404');
+---
+
+<CategoriesIndexView ctx={ctx} />

@@ -1,0 +1,46 @@
+---
+/**
+ * Advertising placement. Renders NOTHING unless:
+ *  - advertising is globally enabled by an admin,
+ *  - a valid AdSense publisher ID (ca-pub-…) has been configured,
+ *  - this placement is enabled and has a numeric ad slot ID.
+ * Space is reserved (min-height) to avoid layout shifts. The ad script is only
+ * loaded after cookie consent when consent is required. No fake ads are ever shown.
+ */
+import type { PageContext } from '../../lib/page';
+import type { AdPlacement } from '../../lib/site/types';
+
+interface Props {
+  ctx: PageContext;
+  placement: AdPlacement;
+}
+const { ctx, placement } = Astro.props;
+const { ads, adSlots } = ctx.data;
+const slot = adSlots.find((s) => s.id === placement);
+const active =
+  ads.enabled && ads.provider === 'adsense' && !!ads.adsenseClient && !!slot?.enabled && !!slot.adSlotId && (slot.showDesktop || slot.showMobile);
+const visibility = slot ? [!slot.showMobile && 'hidden md:block', !slot.showDesktop && 'md:hidden'].filter(Boolean).join(' ') : '';
+---
+
+{
+  active && slot && (
+    <aside class:list={['container-page my-6', visibility]} aria-label={slot.label}>
+      <p class="mb-1 text-center text-[10px] tracking-wider text-slate-400 uppercase">{slot.label}</p>
+      <div
+        class="flex w-full items-center justify-center overflow-hidden rounded-lg bg-slate-100/60 dark:bg-slate-900"
+        style={`min-height:${slot.minHeight}px`}
+      >
+        <ins
+          class="adsbygoogle block w-full"
+          data-ad-client={ads.adsenseClient}
+          data-ad-slot={slot.adSlotId}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+          data-tn-ad
+          data-lazy={slot.lazy ? 'true' : 'false'}
+          data-require-consent={ads.requireConsent ? 'true' : 'false'}
+        />
+      </div>
+    </aside>
+  )
+}

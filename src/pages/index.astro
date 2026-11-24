@@ -1,0 +1,9 @@
+---
+import HomeView from '../views/HomeView.astro';
+import { getPageContext } from '../lib/page';
+
+const ctx = await getPageContext(Astro);
+if (!ctx) return Astro.rewrite('/404');
+---
+
+<HomeView ctx={ctx} />

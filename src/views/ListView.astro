@@ -1,0 +1,44 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ToolCard from '../components/common/ToolCard.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import { LOCALES, localePath } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import { breadcrumbLd } from '../lib/seo/meta';
+import type { PageContext } from '../lib/page';
+
+interface Props {
+  ctx: PageContext;
+  kind: 'popular' | 'recent';
+}
+const { ctx, kind } = Astro.props;
+const { data, locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const brand = data.branding.siteName;
+const all = listedTools(data);
+const tools =
+  kind === 'popular'
+    ? all.filter((x) => x.popular || x.featured)
+    : [...all].sort((a, b) => b.addedAt.localeCompare(a.addedAt)).slice(0, 24);
+const title = kind === 'popular' ? t('pages.popularTitle') : t('pages.recentTitle');
+const desc = kind === 'popular' ? t('pages.popularDesc', { brand }) : t('pages.recentDesc', { brand });
+const path = kind === 'popular' ? '/popular/' : '/recent/';
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  { name: title, href: lp(path) },
+];
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{ title, description: desc, path, locale, alternates: [...LOCALES], jsonLd: [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href })))] }}
+>
+  <div class="container-page py-10">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+    <p class="mt-2 text-slate-600 dark:text-slate-400">{desc}</p>
+    <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {tools.map((tool) => <li><ToolCard ctx={ctx} tool={tool} headingLevel="h2" showNew={kind === 'recent'} /></li>)}
+    </ul>
+  </div>
+</MainLayout>

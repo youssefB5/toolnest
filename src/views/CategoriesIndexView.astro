@@ -1,0 +1,43 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import CategoryCard from '../components/common/CategoryCard.astro';
+import Breadcrumbs from '../components/common/Breadcrumbs.astro';
+import { LOCALES, localePath } from '../i18n';
+import { listedTools } from '../lib/site/merge';
+import { breadcrumbLd } from '../lib/seo/meta';
+import type { PageContext } from '../lib/page';
+
+interface Props {
+  ctx: PageContext;
+}
+const { ctx } = Astro.props;
+const { data, locale, t } = ctx;
+const lp = (p: string) => localePath(locale, p);
+const tools = listedTools(data);
+const cats = data.categories.filter((c) => c.visible);
+const crumbs = [
+  { name: t('nav.home'), href: lp('/') },
+  { name: t('nav.categories'), href: lp('/categories/') },
+];
+---
+
+<MainLayout
+  ctx={ctx}
+  meta={{
+    title: t('pages.categoriesTitle'),
+    description: t('pages.categoriesDesc'),
+    path: '/categories/',
+    locale,
+    alternates: [...LOCALES],
+    jsonLd: [breadcrumbLd(crumbs.map((c) => ({ name: c.name, path: c.href })))],
+  }}
+>
+  <div class="container-page py-10">
+    <Breadcrumbs items={crumbs} label={t('breadcrumb.label')} />
+    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{t('pages.categoriesTitle')}</h1>
+    <p class="mt-2 text-slate-600 dark:text-slate-400">{t('pages.categoriesDesc')}</p>
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {cats.map((c) => <CategoryCard ctx={ctx} category={c} count={tools.filter((x) => x.category === c.id).length} />)}
+    </div>
+  </div>
+</MainLayout>

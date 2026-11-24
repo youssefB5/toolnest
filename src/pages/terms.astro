@@ -1,0 +1,10 @@
+---
+import ContentPageView from '../views/ContentPageView.astro';
+import { getPageContext } from '../lib/page';
+
+const ctx = await getPageContext(Astro);
+const page = ctx?.data.pages.find((p) => p.slug === 'terms');
+if (!ctx || !page) return Astro.rewrite('/404');
+---
+
+<ContentPageView ctx={ctx} page={page} path="/terms/" />

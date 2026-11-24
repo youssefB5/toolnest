@@ -1,0 +1,41 @@
+# build output
+dist/
+.astro/
+.wrangler/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+*.log
+
+# environment & secrets — never commit
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+
+# tests
+test-results/
+playwright-report/
+coverage/
+
+# editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# generated
+public/pdfjs/
+graphify-out/cache/
+
+# graphify local state (machine-specific)
+graphify-out/.graphify_*
+graphify-out/cost.json
+graphify-out/20*/

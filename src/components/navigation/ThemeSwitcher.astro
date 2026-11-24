@@ -1,0 +1,63 @@
+---
+import { Icon } from '../common/Icon';
+import type { PageContext } from '../../lib/page';
+interface Props {
+  ctx: PageContext;
+}
+const { t } = Astro.props.ctx;
+const options = [
+  { v: 'light', icon: 'Sun', label: t('theme.light') },
+  { v: 'dark', icon: 'Moon', label: t('theme.dark') },
+  { v: 'system', icon: 'Monitor', label: t('theme.system') },
+];
+---
+
+<details class="relative" data-dropdown data-theme-menu>
+  <summary class="btn-ghost btn-sm cursor-pointer list-none [&::-webkit-details-marker]:hidden" aria-label={t('nav.theme')}>
+    <span class="dark:hidden"><Icon name="Sun" size={18} /></span>
+    <span class="hidden dark:inline"><Icon name="Moon" size={18} /></span>
+  </summary>
+  <div class="card absolute end-0 top-full z-50 mt-2 w-36 p-1 shadow-[var(--shadow-pop)]" role="group" aria-label={t('nav.theme')}>
+    {
+      options.map((o) => (
+        <button
+          type="button"
+          data-theme-value={o.v}
+          aria-pressed="false"
+          class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-start text-sm hover:bg-slate-100 aria-pressed:font-semibold aria-pressed:text-brand-600 dark:hover:bg-slate-800 dark:aria-pressed:text-brand-200"
+        >
+          <Icon name={o.icon} size={16} />
+          {o.label}
+        </button>
+      ))
+    }
+  </div>
+</details>
+
+<script>
+  const root = document.documentElement;
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const current = () => localStorage.getItem('tn:theme') || root.getAttribute('data-default-theme') || 'system';
+  function apply(v: string) {
+    const dark = v === 'dark' || (v === 'system' && mq.matches);
+    root.classList.toggle('dark', dark);
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.themeValue === v));
+    });
+  }
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-value]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const v = b.dataset.themeValue || 'system';
+      try {
+        localStorage.setItem('tn:theme', v);
+      } catch {
+        /* ignore */
+      }
+      apply(v);
+      const menu = b.closest('details');
+      if (menu) menu.open = false;
+    });
+  });
+  mq.addEventListener('change', () => apply(current()));
+  apply(current());
+</script>

@@ -1,0 +1,41 @@
+---
+import { Icon } from './Icon';
+import { localePath } from '../../i18n';
+import type { PageContext } from '../../lib/page';
+import type { PublicTool } from '../../types/tool';
+
+interface Props {
+  ctx: PageContext;
+  tool: PublicTool;
+  headingLevel?: 'h2' | 'h3';
+  showNew?: boolean;
+}
+const { ctx, tool, headingLevel = 'h3', showNew = false } = Astro.props;
+const { data, locale, t } = ctx;
+const cat = data.categories.find((c) => c.id === tool.category);
+const href = localePath(locale, `/tools/${tool.slug}/`);
+const H = headingLevel;
+---
+
+<article class="card group relative flex h-full flex-col p-5 transition-shadow duration-150 hover:shadow-[var(--shadow-pop)]">
+  <div class="flex items-start justify-between gap-3">
+    <span class="rounded-xl bg-brand-50 p-2.5 text-brand-600 dark:bg-brand-700/20 dark:text-brand-200">
+      <Icon name={tool.icon} size={22} />
+    </span>
+    <div class="flex items-center gap-1.5">
+      {showNew && <span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{t('common.new')}</span>}
+      {tool.maintenance && <span class="badge bg-amber-50 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{t('common.maintenance')}</span>}
+    </div>
+  </div>
+  <H class="mt-4 text-base font-semibold">
+    <a href={href} class="after:absolute after:inset-0 after:rounded-[var(--radius-card)] focus:outline-none">{tool.title}</a>
+  </H>
+  <p class="mt-1.5 line-clamp-2 flex-1 text-sm text-slate-600 dark:text-slate-400">{tool.short}</p>
+  <div class="mt-4 flex items-center justify-between text-xs">
+    {cat && <span class="text-slate-500 dark:text-slate-400">{cat.title}</span>}
+    <span class="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-200" aria-hidden="true">
+      {t('common.openTool')}
+      <Icon name="ChevronRight" size={14} className="flip-rtl transition-transform group-hover:translate-x-0.5" />
+    </span>
+  </div>
+</article>

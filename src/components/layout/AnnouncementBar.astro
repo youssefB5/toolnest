@@ -1,0 +1,29 @@
+---
+import type { PageContext } from '../../lib/page';
+interface Props {
+  ctx: PageContext;
+}
+const { data } = Astro.props.ctx;
+const items = data.announcements.slice(0, 2);
+const banner = data.general.maintenanceBanner.trim();
+const tone = {
+  info: 'bg-brand-600 text-white',
+  warning: 'bg-amber-500 text-amber-950',
+  success: 'bg-emerald-600 text-white',
+};
+---
+
+{banner && <div class="bg-amber-100 px-4 py-2 text-center text-sm text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" role="status">{banner}</div>}
+{
+  items.map((a) => (
+    <div class:list={['px-4 py-2 text-center text-sm', tone[a.level]]} role="region" aria-label="Announcement">
+      {a.linkUrl ? (
+        <a href={a.linkUrl} class="font-medium underline underline-offset-2">
+          {a.message}
+        </a>
+      ) : (
+        <span class="font-medium">{a.message}</span>
+      )}
+    </div>
+  ))
+}
