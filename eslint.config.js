@@ -29,6 +29,7 @@ export default [
         Blob: 'readonly',
         File: 'readonly',
         self: 'readonly',
+        fetch: 'readonly',
       },
     },
     rules: {

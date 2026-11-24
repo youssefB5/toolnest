@@ -48,6 +48,8 @@ const sectionComponent = (d: SectionDef) => {
 };
 
 const IDLE_MS = 30 * 60 * 1000;
+/** Distinguishes a voluntary sign-out from an expired/revoked session. */
+let manualLogout = false;
 
 export default function AdminApp() {
   const sb = getBrowserSupabase();
@@ -72,7 +74,7 @@ export default function AdminApp() {
       setState('ready');
     })();
     const { data: sub } = sb.auth.onAuthStateChange((evt) => {
-      if (evt === 'SIGNED_OUT') location.replace('/admin/login/?expired=1');
+      if (evt === 'SIGNED_OUT') location.replace(manualLogout ? '/admin/login/' : '/admin/login/?expired=1');
     });
     return () => {
       cancelled = true;
@@ -124,6 +126,7 @@ export default function AdminApp() {
   const Current = sectionComponent(current);
   const logout = async () => {
     await ctx.sb.rpc('log_admin_event', { p_action: 'auth.logout', p_details: {} });
+    manualLogout = true;
     await ctx.sb.auth.signOut();
   };
 

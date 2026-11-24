@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "eslint.config.js": {
-    "mtime": 1795557557.6855762,
-    "seen": 1795557971.5363085,
-    "ast_hash": "280f64e1578f7d26a67f8277fe61e3ff",
+    "mtime": 1795561221.920897,
+    "seen": 1795561267.9689834,
+    "ast_hash": "2b5ec9706e2278485844e31f7c8fdccf",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1795557946.946312,
-    "seen": 1795557971.5363114,
-    "ast_hash": "e0d206ed49757dd60263adff4de3cc3c",
+    "mtime": 1795561235.9198744,
+    "seen": 1795561267.9689875,
+    "ast_hash": "4ebd47935170e086956f07524ce5e9a3",
     "semantic_hash": ""
   },
   "scripts/copy-pdfjs-assets.mjs": {
@@ -558,9 +558,9 @@
     "semantic_hash": "22e05d3dbf658a0125f051dfd1ba4ee5"
   },
   "src/lib/supabase/config.ts": {
-    "mtime": 1795557201.1129088,
-    "seen": 1795557971.5876896,
-    "ast_hash": "a1ba995aa271a10722036b24cb7805df",
+    "mtime": 1795560516.2043262,
+    "seen": 1795561267.9849062,
+    "ast_hash": "e5b08b29cfbeb74e9ff1ebeeee6bcf59",
     "semantic_hash": ""
   },
   "src/lib/supabase/public-data.ts": {
@@ -942,9 +942,9 @@
     "semantic_hash": ""
   },
   "src/components/admin/AdminApp.tsx": {
-    "mtime": 1795556594.5309312,
-    "seen": 1795557971.541438,
-    "ast_hash": "ad3c64b5f7c13f4e2e0d017b609855ec",
+    "mtime": 1795560937.4610105,
+    "seen": 1795561267.9694448,
+    "ast_hash": "18fa845ced681dce16927dc4d7847d3c",
     "semantic_hash": ""
   },
   "src/components/admin/LoginForm.tsx": {
@@ -1056,9 +1056,9 @@
     "semantic_hash": ""
   },
   "tests/integration/rls.test.ts": {
-    "mtime": 1795557133.6681888,
-    "seen": 1795557971.6011422,
-    "ast_hash": "320e7089610a491e27dc8d5b51b29daf",
+    "mtime": 1795560494.233171,
+    "seen": 1795561267.9938538,
+    "ast_hash": "8268746383c115c13c400f22d6cf5418",
     "semantic_hash": ""
   },
   "tests/security/security.test.ts": {
@@ -1152,9 +1152,9 @@
     "semantic_hash": ""
   },
   "docs/SETUP.md": {
-    "mtime": 1795557940.380174,
-    "seen": 1795557971.6016157,
-    "ast_hash": "e8b2454f4134d011f4c7e54b8535eede",
+    "mtime": 1795561245.4531462,
+    "seen": 1795561267.9962935,
+    "ast_hash": "b7967596a4c274a598278dfb4278ecf2",
     "semantic_hash": ""
   },
   "public/favicon.svg": {
@@ -1169,10 +1169,28 @@
     "ast_hash": "5a0e39e4cd4b7d09c9e5764c98f4f272",
     "semantic_hash": ""
   },
+  "scripts/preview-local.mjs": {
+    "mtime": 1795560680.0814993,
+    "seen": 1795561267.9694395,
+    "ast_hash": "026888b3a4077820895b3f01efdca2a8",
+    "semantic_hash": ""
+  },
+  "scripts/setup-local-supabase.mjs": {
+    "mtime": 1795560454.757751,
+    "seen": 1795561267.9694424,
+    "ast_hash": "9d6008c1df6a60adc5801966410a9e19",
+    "semantic_hash": ""
+  },
+  "tests/e2e/admin.spec.ts": {
+    "mtime": 1795561116.512509,
+    "seen": 1795561267.993696,
+    "ast_hash": "b1302efec6dfef7eb480eb858c7ab13e",
+    "semantic_hash": ""
+  },
   "package-lock.json": {
-    "mtime": 1795555349.0473464,
-    "seen": 1795557971.601624,
-    "ast_hash": "b8524ce52bbcca202a9f0feb75390452",
+    "mtime": 1795560181.4990957,
+    "seen": 1795561267.9964373,
+    "ast_hash": "3ff122e9b7378ccd954d9c17c27e47e8",
     "semantic_hash": ""
   }
 }

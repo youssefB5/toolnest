@@ -17,7 +17,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "seed:sql": "node --experimental-strip-types scripts/generate-seed.ts"
+    "seed:sql": "node --experimental-strip-types scripts/generate-seed.ts",
+    "db:start": "supabase start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,storage-api,supavisor",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test-users": "node scripts/setup-local-supabase.mjs",
+    "preview:local": "node scripts/preview-local.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.9",
@@ -51,6 +56,7 @@
     "jsdom": "^29.1.1",
     "prettier": "^3.10.1",
     "prettier-plugin-astro": "^1.1.2",
+    "supabase": "^3.4.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "^5.1.1",

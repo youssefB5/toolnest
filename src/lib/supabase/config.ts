@@ -7,7 +7,10 @@ export const SUPABASE_URL: string = (import.meta.env.PUBLIC_SUPABASE_URL ?? '').
 export const SUPABASE_ANON_KEY: string = (import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
 
 export function isSupabaseConfigured(): boolean {
-  return /^https:\/\/[a-z0-9.-]+$/i.test(SUPABASE_URL.replace(/\/$/, '')) && SUPABASE_ANON_KEY.length > 20;
+  const url = SUPABASE_URL.replace(/\/$/, '');
+  // https everywhere; plain http only for a local development stack (supabase start)
+  const ok = /^https:\/\/[a-z0-9.-]+$/i.test(url) || /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(url);
+  return ok && SUPABASE_ANON_KEY.length > 20;
 }
 
 /** Defensive check: refuse to run with a key that is a service_role JWT. */

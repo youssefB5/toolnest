@@ -60,4 +60,28 @@ npx playwright install chromium
 npm run build && npm run test:e2e   # e2e against `wrangler dev`
 ```
 
-Live RLS tests (`tests/integration/rls.test.ts`) run only when `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY` (and optionally editor credentials) point to a **dedicated test project**.
+## 7. Full local stack (Supabase in Docker)
+
+Requires Docker Desktop running. Everything stays on your machine.
+
+```bash
+npm run db:start          # Postgres 17 + Auth + REST; applies migrations and seed
+npm run db:test-users     # creates owner/admin/editor/user test accounts → .env.test.local (git-ignored)
+npm test                  # now also runs the 17 live RLS tests (tests/integration/rls.test.ts)
+```
+
+Admin end-to-end with the local stack:
+
+```powershell
+# PowerShell — use the values printed by `npx supabase status`
+$env:PUBLIC_SUPABASE_URL="http://127.0.0.1:54321"
+$env:PUBLIC_SUPABASE_ANON_KEY="<anon key from supabase status>"
+npm run build
+npm run preview:local     # wrangler dev, allowed to reach 127.0.0.1 (local only)
+npm run test:e2e          # includes tests/e2e/admin.spec.ts
+```
+
+`npm run db:reset` rebuilds the database from the migrations and seed; `npm run db:stop` stops the containers.
+`supabase/config.jsonc` configures only this local stack (signup disabled, TOTP enabled); production settings are made in the Supabase dashboard (section 4).
+
+Live RLS tests also run against a remote **dedicated test project** if `SUPABASE_TEST_*` variables point to it — never to production.
